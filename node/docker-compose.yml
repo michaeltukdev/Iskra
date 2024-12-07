@@ -1,0 +1,9 @@
+version: '3'
+services:
+  iskra-node:
+    build: .
+    container_name: iskra-node
+    volumes: 
+      - /proc:/host/proc:ro
+    ports: 
+      - "8080:8080"
