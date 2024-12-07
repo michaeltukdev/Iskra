@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Welcome](README.md)
+* [Iskra Documentation](README.md)
 
 ## Getting Started
 
