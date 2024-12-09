@@ -2,7 +2,10 @@ module iskra/node
 
 go 1.22.5
 
-require github.com/labstack/echo/v4 v4.13.0
+require (
+	github.com/coder/websocket v1.8.12
+	github.com/labstack/echo/v4 v4.13.0
+)
 
 require (
 	github.com/labstack/gommon v0.4.2 // indirect
