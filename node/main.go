@@ -15,6 +15,7 @@ func main() {
 
 	e := echo.New()
 	registerRoutes(e)
+	go handlers.Websocket()
 	e.Start(":8080")
 }
 
