@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"iskra/centralized/internal/database"
 	"iskra/centralized/internal/database/models"
 	"iskra/centralized/internal/middlewares"
 	"net/http"
@@ -27,14 +26,24 @@ func Register(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	exists, err := models.UserExists(user.Email, user.Username)
+	existingEmailUser, err := models.GetUserByEmail(user.Email)
 	if err != nil {
-		fmt.Printf("Failed to check if user exists: %v\n", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		fmt.Printf("Failed to check if user exists by email: %v\n", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Internal server error")
 	}
 
-	if exists {
-		return echo.NewHTTPError(http.StatusConflict, "User already exists")
+	if existingEmailUser != nil {
+		return echo.NewHTTPError(http.StatusConflict, "Email already in use")
+	}
+
+	existingUsernameUser, err := models.GetUserByUsername(user.Username)
+	if err != nil {
+		fmt.Printf("Failed to check if user exists by username: %v\n", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Internal server error")
+	}
+
+	if existingUsernameUser != nil {
+		return echo.NewHTTPError(http.StatusConflict, "Username already in use")
 	}
 
 	_, err = models.CreateUser(user)
@@ -47,7 +56,7 @@ func Register(c echo.Context) error {
 }
 
 func Login(c echo.Context) error {
-	var user models.User
+	var user *models.User
 
 	if err := c.Bind(&user); err != nil {
 		fmt.Printf("Failed to bind user: %v\n", err)
@@ -60,23 +69,17 @@ func Login(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	exists, err := models.UserExists(user.Email, "")
-	if err != nil {
-		fmt.Printf("Failed to check if user exists: %v\n", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-
-	if !exists {
-		return echo.NewHTTPError(http.StatusNotFound, "User not found")
-	}
-
-	err = database.DB.NewSelect().Model(&user).Where("email = ?", user.Email).Scan(c.Request().Context())
+	validUser, err := models.GetUserByEmail(user.Email)
 	if err != nil {
 		fmt.Printf("Failed to get user: %v\n", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(user.Password))
+	if user == nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid credentials")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(validUser.Password), []byte(user.Password))
 	if err != nil {
 		fmt.Printf("Failed to compare passwords: %v\n", err)
 		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid credentials")

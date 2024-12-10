@@ -20,18 +20,34 @@ type User struct {
 	UpdatedAt time.Time `bun:",default:current_timestamp" json:"updated_at,omitempty"`
 }
 
-func UserExists(email, username string) (bool, error) {
+func GetUserByEmail(email string) (*User, error) {
 	var user User
-	err := database.DB.NewSelect().Model(&user).Where("email = ? OR username = ?", email, username).Scan(context.Background())
+	err := database.DB.NewSelect().Model(&user).Where("email = ?", email).Scan(context.Background())
 
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			return false, nil
+			return nil, nil
 		}
-		return false, err
+
+		return nil, err
 	}
 
-	return true, nil
+	return &user, nil
+}
+
+func GetUserByUsername(username string) (*User, error) {
+	var user User
+	err := database.DB.NewSelect().Model(&user).Where("username = ?", username).Scan(context.Background())
+
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 func CreateUser(user User) (*User, error) {
