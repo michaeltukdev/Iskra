@@ -10,6 +10,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Register(c echo.Context) error {
@@ -42,7 +43,7 @@ func Register(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusCreated, user)
+	return c.JSON(http.StatusCreated, "User created successfully")
 }
 
 func Login(c echo.Context) error {
@@ -69,9 +70,15 @@ func Login(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, "User not found")
 	}
 
-	err = database.DB.NewSelect().Model(&user).Where("email = ? AND password = ?", user.Email, user.Password).Scan(c.Request().Context())
+	err = database.DB.NewSelect().Model(&user).Where("email = ?", user.Email).Scan(c.Request().Context())
 	if err != nil {
-		fmt.Printf("Failed to find user: %v\n", err)
+		fmt.Printf("Failed to get user: %v\n", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(user.Password))
+	if err != nil {
+		fmt.Printf("Failed to compare passwords: %v\n", err)
 		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid credentials")
 	}
 

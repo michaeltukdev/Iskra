@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/uptrace/bun"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -34,7 +35,13 @@ func UserExists(email, username string) (bool, error) {
 }
 
 func CreateUser(user User) (*User, error) {
-	_, err := database.DB.NewInsert().Model(&user).Exec(context.Background())
+	hashed, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
+	if err != nil {
+		return nil, err
+	}
+	user.Password = string(hashed)
+
+	_, err = database.DB.NewInsert().Model(&user).Exec(context.Background())
 
 	if err != nil {
 		return nil, err
