@@ -20,8 +20,8 @@ func Register(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	validator := validator.New()
-	if err := validator.Struct(user); err != nil {
+	err := user.Validate()
+	if err != nil {
 		fmt.Printf("Failed to validate user: %v\n", err)
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
