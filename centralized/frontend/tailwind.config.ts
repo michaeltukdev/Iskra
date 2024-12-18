@@ -11,8 +11,25 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        input: {
+          DEFAULT: "var(--input)",
+        },
+        'input-border': {
+          DEFAULT: "var(--input-border)",
+        },
+        text: {
+          light: "var(--text-light)",
+          medium: "var(--text-medium)",
+          dark: "var(--text-dark)",
+        },
+        primary: {
+          DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
+        }
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
 } satisfies Config;

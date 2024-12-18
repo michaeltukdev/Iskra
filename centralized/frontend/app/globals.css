@@ -2,20 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+
+/* Add light theme soon */
+/* :root {
   --background: #ffffff;
   --foreground: #171717;
-}
+} */
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #181B1E;
+    --foreground: #1D2124;
+    --foreground-border: #2E3439;
+    --text-light: #FFFFFF;
+    --text-medium: #979EA6;
+    --text-dark: #42464B;
+    --input: #2E3439;
+    --input-border: #4A535A;
+    --primary: #53B78B;
+    --primary-hover: #36815f;
   }
 }
 
 body {
-  color: var(--foreground);
+  color: var(--text-medium);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
 }

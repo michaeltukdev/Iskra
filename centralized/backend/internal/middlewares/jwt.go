@@ -18,6 +18,7 @@ func JWTMiddleware(secretKey string) echo.MiddlewareFunc {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(JWTCustomClaims)
 		},
-		SigningKey: []byte(secretKey),
+		SigningKey:  []byte(secretKey),
+		TokenLookup: "cookie:token",
 	})
 }
