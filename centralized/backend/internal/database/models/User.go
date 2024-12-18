@@ -26,12 +26,24 @@ func (u User) Validate() error {
 	return validation.ValidateStruct(&u,
 		validation.Field(&u.Email,
 			validation.Required.Error("Email is required"),
-			is.Email.Error("Invalid email format"),
+			is.Email.Error("Email is not valid"),
 		),
 		validation.Field(&u.Username,
 			validation.Required.Error("Username is required"),
 			validation.Length(3, 50).Error("Username must be between 3 and 50 characters"),
 			is.Alphanumeric.Error("Username can only contain letters and numbers"),
+		),
+		validation.Field(&u.Password,
+			validation.Required.Error("Password is required"),
+			validation.Length(8, 0).Error("Password must be at least 8 characters long"),
+		),
+	)
+}
+
+func (u User) ValidateLogin() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Email,
+			validation.Required.Error("Email is required"),
 		),
 		validation.Field(&u.Password,
 			validation.Required.Error("Password is required"),

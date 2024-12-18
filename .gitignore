@@ -2,3 +2,4 @@ centralized/backend/tmp
 *.exe
 centralized/backend/tmp/main.exe
 *.log
+*.db

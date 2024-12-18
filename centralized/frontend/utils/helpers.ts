@@ -20,3 +20,7 @@ export const splitError = (error: string): ErrorObject => {
 
     return errorObject;
 };
+
+export function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}

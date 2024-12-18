@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"iskra/centralized/internal/database"
 	"iskra/centralized/internal/handlers"
 	"iskra/centralized/internal/middlewares"
@@ -40,11 +41,14 @@ import (
 // }
 
 func main() {
+	fmt.Println("Starting server...")
+
 	e := echo.New()
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:3000"},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowCredentials: true,
 	}))
 
 	RegisterRoutes(e)
@@ -58,6 +62,9 @@ func RegisterRoutes(e *echo.Echo) {
 	auth := e.Group("/auth")
 	auth.POST("/register", handlers.Register)
 	auth.POST("/login", handlers.Login)
+	auth.POST("/logout", handlers.Logout)
+
+	e.POST("/me", handlers.Me, middlewares.JWTMiddleware("secret"))
 
 	protected := e.Group("/protected")
 	protected.Use(middlewares.JWTMiddleware("secret"))

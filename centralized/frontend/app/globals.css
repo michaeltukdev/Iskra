@@ -17,6 +17,10 @@
     --text-light: #FFFFFF;
     --text-medium: #979EA6;
     --text-dark: #42464B;
+    --input: #2E3439;
+    --input-border: #4A535A;
+    --primary: #53B78B;
+    --primary-hover: #36815f;
   }
 }
 
