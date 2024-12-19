@@ -11,6 +11,7 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        'foreground-border': "var(--foreground-border)",
         input: {
           DEFAULT: "var(--input)",
         },
@@ -21,6 +22,7 @@ export default {
           light: "var(--text-light)",
           medium: "var(--text-medium)",
           dark: "var(--text-dark)",
+          spare: "var(--text-spare)",
         },
         primary: {
           DEFAULT: "var(--primary)",
