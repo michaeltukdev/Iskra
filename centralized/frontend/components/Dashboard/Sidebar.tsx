@@ -38,8 +38,8 @@ const SidebarHeader: React.FC = memo(() => {
             <div className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-foreground-border rounded-lg"></div>
                 <div>
-                    <p>{user?.username}</p>
-                    <p className="text-xs text-text-spare font-medium">{user?.email}</p>
+                    <p>{user ? user?.username : "Loading..."}</p>
+                    <p className="text-xs text-text-spare font-medium">{user ? user?.email : "Loading..."}</p>
                 </div>
             </div>
             <ChevronRight size={16} className="group-hover:text-text-light transition-all" />
