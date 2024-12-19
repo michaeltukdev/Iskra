@@ -88,9 +88,9 @@ func Login(c echo.Context) error {
 	}
 
 	claims := &middlewares.JWTCustomClaims{
-		UserID:   user.ID,
-		Username: user.Username,
-		Email:    user.Email,
+		UserID:   validUser.ID,
+		Username: validUser.Username,
+		Email:    validUser.Email,
 	}
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("secret"))
