@@ -1,6 +1,8 @@
+const API_URL = process.env.API_URL;
+
 export const authService = {
     register: async (email: string, username: string, password: string) => {
-        const response = await fetch("http://localhost:8080/auth/register", {
+        const response = await fetch(API_URL + "/auth/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -18,7 +20,7 @@ export const authService = {
 
     login: async (email: string, password: string) => {
         try {
-            const response = await fetch("http://localhost:8080/auth/login", {
+            const response = await fetch(API_URL + "/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
@@ -37,7 +39,7 @@ export const authService = {
     },
 
     logout: async () => {
-        const response = await fetch("http://localhost:8080/auth/logout", {
+        const response = await fetch(API_URL + "/auth/logout", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -55,7 +57,7 @@ export const authService = {
 
     validate: async () => {
         try {
-            const response = await fetch("http://localhost:8080/me", {
+            const response = await fetch(API_URL + "/me", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -77,6 +79,5 @@ export const authService = {
         } catch (error) {
             throw error;
         }
-    }
-
+    },
 }

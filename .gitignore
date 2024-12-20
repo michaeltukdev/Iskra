@@ -4,3 +4,4 @@ centralized/backend/tmp/main.exe
 *.log
 *.db
 centralized/backend/internal/database/iskra.db
+.env
