@@ -5,6 +5,7 @@ import (
 	"iskra/centralized/internal/database/models"
 	"iskra/centralized/internal/middlewares"
 	"net/http"
+	"os"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
@@ -93,7 +94,7 @@ func Login(c echo.Context) error {
 		Email:    validUser.Email,
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("secret"))
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
 		fmt.Printf("Failed to sign token: %v\n", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
