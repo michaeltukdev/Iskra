@@ -5,7 +5,7 @@ export default function DashboardLayout({ children }: Readonly<{ children: React
         <div className="lg:flex">
             <Sidebar />
 
-            <div className="lg:px-[70px]">
+            <div className="lg:px-[70px] w-full">
                 {children}
             </div>
         </div>
