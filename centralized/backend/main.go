@@ -6,43 +6,52 @@ import (
 	"iskra/centralized/internal/handlers"
 	"iskra/centralized/internal/middlewares"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
+	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-// func handleWebSocket(c echo.Context) error {
-// 	channel, err := websocket.Accept(c.Response(), c.Request(), nil)
-// 	if err != nil {
-// 		log.Printf("Failed to accept WebSocket: %v\n", err)
-// 		return err
-// 	}
-// 	defer channel.Close(websocket.StatusNormalClosure, "Normal closure")
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
-// 	for {
-// 		var v interface{}
-// 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-// 		defer cancel()
+func handleWebSocket(c echo.Context) error {
+	// Upgrade the HTTP connection to a WebSocket connection
+	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		fmt.Println("Error upgrading connection:", err)
+		return err
+	}
+	defer conn.Close()
 
-// 		err := wsjson.Read(ctx, channel, &v)
-// 		if err != nil {
-// 			switch websocket.CloseStatus(err) {
-// 			case websocket.StatusNormalClosure, websocket.StatusGoingAway:
-// 				return nil
-// 			}
+	fmt.Println("Client connected", conn.RemoteAddr())
 
-// 			log.Printf("Failed to read WebSocket message: %v\n", err)
-// 			break
-// 		}
+	for {
+		// Read message from client
+		messageType, message, err := conn.ReadMessage()
+		if err != nil {
+			fmt.Println("Error reading message:", err)
+			break
+		}
 
-// 		log.Printf("Received: %v\n", v)
-// 	}
+		fmt.Printf("Received: %s\n", message)
 
-// 	return nil
-// }
+		err = conn.WriteMessage(messageType, message)
+		if err != nil {
+			fmt.Println("Error writing message:", err)
+			break
+		}
+	}
+
+	return nil
+}
 
 type Config struct {
 	FRONTEND_URL string
@@ -81,7 +90,7 @@ func main() {
 	e := echo.New()
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{config.FRONTEND_URL},
+		AllowOrigins:     []string{"*"},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 		AllowCredentials: true,
 	}))
@@ -106,4 +115,9 @@ func RegisterRoutes(e *echo.Echo) {
 	protected := e.Group("/protected")
 	protected.Use(middlewares.JWTMiddleware(config.JWT_SECRET))
 	protected.GET("", handlers.Restricted)
+
+	// Testing
+	e.GET("/ws", func(c echo.Context) error {
+		return handleWebSocket(c)
+	})
 }

@@ -1,46 +1,51 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
-	cpu "iskra/node/internal/cpuinfo"
-	internal "iskra/node/internal/meminfo"
-	uptime "iskra/node/internal/uptime"
-	"time"
+	"net/http"
 
-	"github.com/coder/websocket"
-	"github.com/coder/websocket/wsjson"
+	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
 )
 
-func Websocket() {
-	fmt.Println("Websocket starting...")
-
-	// Establish the WebSocket connection
-	c, _, err := websocket.Dial(context.Background(), "ws://host.docker.internal:8081/hello", nil)
-	if err != nil {
-		fmt.Printf("Failed to connect: %v\n", err)
-		return
-	}
-	defer c.Close(websocket.StatusNormalClosure, "Normal closure")
-
-	// Send messages
-	messages := []interface{}{
-		internal.Meminfo(),
-		cpu.CPUInfo(),
-		uptime.Uptime(),
-	}
-
-	for _, msg := range messages {
-		// Create a fresh context for each message
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		err := wsjson.Write(ctx, c, msg)
-		if err != nil {
-			fmt.Printf("Failed to send message: %v\n", err)
-			continue
-		}
-		fmt.Printf("Message sent: %v\n", msg)
-	}
+// WebSocket upgrade handler
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		// Currently allowing all origins - this is not secure
+		return true
+	},
 }
 
+// Initalize the WebSocket connection and handle incoming messages
+func WebsocketHandler(c echo.Context) error {
+	// Upgrade the HTTP connection to a WebSocket connection
+	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		fmt.Println("Error upgrading connection:", err)
+		return err
+	}
+	defer conn.Close()
+
+	fmt.Println("WebSocket client connected")
+
+	// Handle incoming messages
+	for {
+		// Read message from client
+		messageType, message, err := conn.ReadMessage()
+		if err != nil {
+			fmt.Println("Error reading message:", err)
+			break
+		}
+
+		fmt.Printf("Received from client: %s\n", message)
+
+		// Echo the message back to the client
+		err = conn.WriteMessage(messageType, message)
+		if err != nil {
+			fmt.Println("Error writing message:", err)
+			break
+		}
+	}
+
+	return nil
+}
