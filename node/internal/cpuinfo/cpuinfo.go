@@ -28,9 +28,9 @@ var keyRenames = map[string]string{
 func CPUInfo() map[string]map[string]string {
 	processors := make(map[string]map[string]string)
 
-	cpuInfo, err := os.Open("/host/proc/cpuinfo")
+	cpuInfo, err := os.Open("/proc/cpuinfo")
 	if err != nil {
-		log.Fatalf("Failed to read /host/proc/cpuinfo: %v", err)
+		log.Fatalf("Failed to read /proc/cpuinfo: %v", err)
 	}
 	defer cpuInfo.Close()
 

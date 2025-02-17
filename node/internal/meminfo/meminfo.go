@@ -21,9 +21,9 @@ var procEntries = []string{
 var procEntriesMap = map[string]string{}
 
 func Meminfo() map[string]string {
-	memInfo, err := os.Open("/host/proc/meminfo")
+	memInfo, err := os.Open("/proc/meminfo")
 	if err != nil {
-		log.Fatalf("Failed to read /host/proc/meminfo: %v", err)
+		log.Fatalf("Failed to read /proc/meminfo: %v", err)
 	}
 	defer memInfo.Close()
 

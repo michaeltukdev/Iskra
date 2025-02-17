@@ -19,7 +19,7 @@ import (
 
 func websocketClient() {
 	// Connect to the WebSocket server
-	serverAddr := "ws://host.docker.internal:81/ws"
+	serverAddr := "ws://localhost:8000/ws"
 	conn, _, err := websocket.DefaultDialer.Dial(serverAddr, nil)
 	if err != nil {
 		log.Fatal("Error connecting to WebSocket server:", err)
@@ -68,30 +68,12 @@ func websocketClient() {
 
 // Main function starts the node and initializes the web server and WebSocket client.
 func main() {
-	// Check if the operating system is Windows and exit if it is.
-	if runtime.GOOS == "windows" {
-		log.Fatalf("This program does not support Windows currently.")
+	if runtime.GOOS != "linux" {
+		log.Fatalf("Iskra Node only works on Linux machines currently")
 	}
 
-	// Initialize the Echo web server.
 	e := echo.New()
 
-	// Register all HTTP and WebSocket routes.
-	RegisterRoutes(e)
-
-	// Start the WebSocket client in a separate goroutine.
-	go websocketClient()
-
-	// Start the web server on port 8081.
-	fmt.Println("Server started on :8081")
-	if err := e.Start(":8081"); err != nil {
-		log.Fatalf("Error starting server: %v", err)
-	}
-}
-
-// RegisterRoutes sets up all the HTTP routes and WebSocket endpoints for the node.
-func RegisterRoutes(e *echo.Echo) {
-	// API routes under /api/v1
 	apiRoutes := e.Group("/api/v1")
 	apiRoutes.GET("/meminfo", handlers.GetMemInfo) // GET memory information
 	apiRoutes.GET("/cpuinfo", handlers.GetCpuInfo) // GET CPU information
@@ -99,4 +81,12 @@ func RegisterRoutes(e *echo.Echo) {
 
 	// WebSocket endpoint for handling WebSocket connections
 	e.GET("/ws", handlers.WebsocketHandler)
+
+	go websocketClient()
+
+	// Start the web server on port 8081.
+	fmt.Println("Server started on :8081")
+	if err := e.Start(":8081"); err != nil {
+		log.Fatalf("Error starting server: %v", err)
+	}
 }

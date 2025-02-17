@@ -8,9 +8,9 @@ import (
 )
 
 func Uptime() map[string]string {
-	cpuInfo, err := os.Open("/host/proc/uptime")
+	cpuInfo, err := os.Open("/proc/uptime")
 	if err != nil {
-		log.Fatalf("Failed to read /host/proc/cpuinfo: %v", err)
+		log.Fatalf("Failed to read /proc/cpuinfo: %v", err)
 	}
 	defer cpuInfo.Close()
 
