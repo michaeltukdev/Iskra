@@ -4,7 +4,6 @@ import { Input } from '@/components/UI/Input';
 import { useState } from 'react';
 import Link from 'next/link';
 import { validateRegister } from '@/utils/validation/authValidation';
-import { register } from 'module';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 

@@ -6,49 +6,49 @@ import (
 	"iskra/centralized/internal/database"
 	"iskra/centralized/internal/handlers"
 	"iskra/centralized/internal/middlewares"
-	"net/http"
+	"log"
+	"net/url"
 
-	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
+// var upgrader = websocket.Upgrader{
+// 	CheckOrigin: func(r *http.Request) bool {
+// 		return true
+// 	},
+// }
 
-func handleWebSocket(c echo.Context) error {
-	// Upgrade the HTTP connection to a WebSocket connection
-	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-	if err != nil {
-		fmt.Println("Error upgrading connection:", err)
-		return err
-	}
-	defer conn.Close()
+// func handleWebSocket(c echo.Context) error {
+// 	// Upgrade the HTTP connection to a WebSocket connection
+// 	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+// 	if err != nil {
+// 		fmt.Println("Error upgrading connection:", err)
+// 		return err
+// 	}
+// 	defer conn.Close()
 
-	fmt.Println("Client connected", conn.RemoteAddr())
+// 	fmt.Println("Client connected", conn.RemoteAddr())
 
-	for {
-		// Read message from client
-		messageType, message, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println("Error reading message:", err)
-			break
-		}
+// 	for {
+// 		// Read message from client
+// 		messageType, message, err := conn.ReadMessage()
+// 		if err != nil {
+// 			fmt.Println("Error reading message:", err)
+// 			break
+// 		}
 
-		fmt.Printf("Received: %s\n", message)
+// 		fmt.Printf("Received: %s\n", message)
 
-		err = conn.WriteMessage(messageType, message)
-		if err != nil {
-			fmt.Println("Error writing message:", err)
-			break
-		}
-	}
+// 		err = conn.WriteMessage(messageType, message)
+// 		if err != nil {
+// 			fmt.Println("Error writing message:", err)
+// 			break
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func main() {
 	config := config.Initialize()
@@ -58,17 +58,22 @@ func main() {
 	e := echo.New()
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     []string{config.FRONTEND_URL},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 		AllowCredentials: true,
 	}))
 
-	// RegisterRoutes(e)
+	RegisterRoutes(e)
 
 	database.Init()
 
+	parsedURL, err := url.Parse(config.BACKEND_URL)
+	if err != nil {
+		log.Fatalf("Error parsing backend URL: %v", err)
+	}
+
 	fmt.Println("Server started at", config.BACKEND_URL)
-	e.Logger.Fatal(e.Start(config.BACKEND_URL))
+	e.Logger.Fatal(e.Start(parsedURL.Host))
 }
 
 func RegisterRoutes(e *echo.Echo) {
@@ -86,7 +91,7 @@ func RegisterRoutes(e *echo.Echo) {
 	protected.GET("", handlers.Restricted)
 
 	// Testing
-	e.GET("/ws", func(c echo.Context) error {
-		return handleWebSocket(c)
-	})
+	// e.GET("/ws", func(c echo.Context) error {
+	// 	return handleWebSocket(c)
+	// })
 }
