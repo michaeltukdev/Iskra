@@ -1,7 +1,10 @@
 package config
 
 import (
+	"fmt"
+	"iskra/centralized/internal/helpers"
 	"log"
+	"path/filepath"
 	"sync"
 
 	"github.com/caarlos0/env/v11"
@@ -9,9 +12,10 @@ import (
 )
 
 type Config struct {
-	FRONTEND_URL string `env:"FRONTEND_URL,required"`
-	BACKEND_URL  string `env:"BACKEND_URL,required"`
-	JWT_SECRET   string `env:"JWT_SECRET,required"`
+	APPLICATION_STATUS string `env:"APPLICATION_STATUS,required"`
+	FRONTEND_URL       string `env:"FRONTEND_URL,required"`
+	BACKEND_URL        string `env:"BACKEND_URL,required"`
+	JWT_SECRET         string `env:"JWT_SECRET,required"`
 }
 
 var (
@@ -21,7 +25,11 @@ var (
 
 func Initialize() *Config {
 	once.Do(func() {
-		if err := godotenv.Load(); err != nil {
+		envPath := filepath.Join(helpers.GetProjectRoot(), ".env")
+
+		fmt.Println(envPath)
+
+		if err := godotenv.Load(envPath); err != nil {
 			log.Fatal("No .env file found!")
 		}
 

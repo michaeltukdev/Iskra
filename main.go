@@ -1,16 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"iskra/centralized/internal/config"
 	"iskra/centralized/internal/database"
-	"iskra/centralized/internal/handlers"
-	"iskra/centralized/internal/middlewares"
+	"iskra/centralized/internal/server"
 	"log"
 	"net/url"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 // var upgrader = websocket.Upgrader{
@@ -50,23 +49,22 @@ import (
 // 	return nil
 // }
 
+type App struct {
+	Config     *config.Config
+	DB         *sql.DB
+	HTTPClient *echo.Echo
+}
+
 func main() {
 	config := config.Initialize()
-
 	fmt.Println("Starting server...")
 
-	e := echo.New()
+	db, err := database.Init()
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
 
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{config.FRONTEND_URL},
-		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
-		AllowCredentials: true,
-	}))
-
-	RegisterRoutes(e)
-
-	database.Init()
-
+	e := server.NewServer(config, db)
 	parsedURL, err := url.Parse(config.BACKEND_URL)
 	if err != nil {
 		log.Fatalf("Error parsing backend URL: %v", err)
@@ -74,24 +72,4 @@ func main() {
 
 	fmt.Println("Server started at", config.BACKEND_URL)
 	e.Logger.Fatal(e.Start(parsedURL.Host))
-}
-
-func RegisterRoutes(e *echo.Echo) {
-	config := config.Initialize()
-
-	auth := e.Group("/auth")
-	auth.POST("/register", handlers.Register)
-	auth.POST("/login", handlers.Login)
-	auth.POST("/logout", handlers.Logout)
-
-	e.POST("/me", handlers.Me, middlewares.JWTMiddleware(config.JWT_SECRET))
-
-	protected := e.Group("/protected")
-	protected.Use(middlewares.JWTMiddleware(config.JWT_SECRET))
-	protected.GET("", handlers.Restricted)
-
-	// Testing
-	// e.GET("/ws", func(c echo.Context) error {
-	// 	return handleWebSocket(c)
-	// })
 }

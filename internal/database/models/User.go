@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"iskra/centralized/internal/database"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -52,9 +51,9 @@ func (u User) ValidateLogin() error {
 	)
 }
 
-func GetUserByEmail(email string) (*User, error) {
+func GetUserByEmail(email string, db *bun.DB) (*User, error) {
 	var user User
-	err := database.DB.NewSelect().Model(&user).Where("email = ?", email).Scan(context.Background())
+	err := db.NewSelect().Model(&user).Where("email = ?", email).Scan(context.Background())
 
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
@@ -67,9 +66,9 @@ func GetUserByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-func GetUserByUsername(username string) (*User, error) {
+func GetUserByUsername(username string, db *bun.DB) (*User, error) {
 	var user User
-	err := database.DB.NewSelect().Model(&user).Where("username = ?", username).Scan(context.Background())
+	err := db.NewSelect().Model(&user).Where("username = ?", username).Scan(context.Background())
 
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
@@ -82,14 +81,14 @@ func GetUserByUsername(username string) (*User, error) {
 	return &user, nil
 }
 
-func CreateUser(user User) (*User, error) {
+func CreateUser(user User, db *bun.DB) (*User, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 	if err != nil {
 		return nil, err
 	}
 	user.Password = string(hashed)
 
-	_, err = database.DB.NewInsert().Model(&user).Exec(context.Background())
+	_, err = db.NewInsert().Model(&user).Exec(context.Background())
 
 	if err != nil {
 		return nil, err
