@@ -5,3 +5,5 @@ centralized/backend/tmp/main.exe
 *.db
 centralized/backend/internal/database/iskra.db
 .env
+tmp
+*:memory

@@ -2,6 +2,8 @@ package database
 
 import (
 	"database/sql"
+	"iskra/centralized/internal/config"
+	"iskra/centralized/internal/helpers"
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -10,24 +12,34 @@ import (
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 )
 
-var DB *bun.DB
+func Init() (*bun.DB, error) {
+	config := config.Initialize()
 
-func Init() {
-	sqldb, err := sql.Open("sqlite3", "./internal/database/iskra.db")
+	var sqlDB *sql.DB
+	var err error
+
+	if config.APPLICATION_STATUS == "testing" {
+		sqlDB, err = sql.Open("sqlite3", "file:?mode=memory&cache=shared")
+	} else {
+		sqlDB, err = sql.Open("sqlite3", "./internal/database/iskra.db")
+	}
+
 	if err != nil {
-		log.Fatalf("failed to open SQLite database: %v", err)
+		return nil, err
 	}
 
 	if err := goose.SetDialect("sqlite3"); err != nil {
-		log.Fatalf("failed to set goose dialect: %v", err)
+		return nil, err
 	}
 
-	if err := goose.Up(sqldb, "./internal/database/migrations"); err != nil {
-		log.Fatalf("failed to run migrations: %v", err)
+	if err := goose.Up(sqlDB, helpers.GetProjectRoot()+"/internal/database/migrations"); err != nil {
+		return nil, err
 	}
 
 	log.Println("Migrations ran successfully")
 
-	DB = bun.NewDB(sqldb, sqlitedialect.New())
+	db := bun.NewDB(sqlDB, sqlitedialect.New())
 	log.Println("Bun DB initialized successfully")
+
+	return db, nil
 }
