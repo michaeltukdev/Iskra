@@ -153,7 +153,7 @@ func TestLogin(t *testing.T) {
 			name: "Test Login",
 			input: models.User{
 				Email:    "mikey.d.tilley@gmail.com",
-				Password: "yourpassword123.",
+				Password: "yourpassword123._",
 			},
 			want: http.StatusAccepted,
 		},
