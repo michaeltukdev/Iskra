@@ -102,3 +102,88 @@ func TestRegister(t *testing.T) {
 		})
 	}
 }
+
+func TestLogin(t *testing.T) {
+	db, err := database.Init()
+	if err != nil {
+		t.Fatalf("Failed to initialize database: %v", err)
+	}
+	defer db.Close()
+
+	h := &Handlers{
+		DB:        db,
+		JWTSecret: "test-secret",
+	}
+
+	e := echo.New()
+
+	models.CreateUser(models.User{
+		Email:    "mikey.d.tilley@gmail.com",
+		Username: "Michael",
+		Password: "yourpassword123._",
+	}, db)
+
+	tests := []struct {
+		name  string
+		input models.User
+		want  int
+	}{
+		{
+			name:  "Test Login Binding",
+			input: models.User{},
+			want:  http.StatusBadRequest,
+		},
+		{
+			name: "Test Validation",
+			input: models.User{
+				Email:    "",
+				Password: "",
+			},
+			want: http.StatusBadRequest,
+		},
+		{
+			name: "Test User Exists",
+			input: models.User{
+				Email:    "mike@gmail.com",
+				Password: "yourpassword123._",
+			},
+			want: http.StatusUnauthorized,
+		},
+		{
+			name: "Test Login",
+			input: models.User{
+				Email:    "mikey.d.tilley@gmail.com",
+				Password: "yourpassword123._",
+			},
+			want: http.StatusAccepted,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			payloadBytes, err := json.Marshal(test.input)
+			if err != nil {
+				t.Fatalf("Failed to marshal payload: %v", err)
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/auth/login", bytes.NewReader(payloadBytes))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+			rec := httptest.NewRecorder()
+
+			c := e.NewContext(req, rec)
+
+			err = h.Login(c)
+			if err != nil {
+				echoErr, ok := err.(*echo.HTTPError)
+				if !ok {
+					t.Fatalf("Handler returned an unexpected error type: %v", err)
+				}
+
+				if echoErr.Code != test.want {
+					t.Errorf("Expected status code %d, got %d", test.want, echoErr.Code)
+				}
+			}
+		})
+	}
+}
