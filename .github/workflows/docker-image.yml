@@ -1,0 +1,40 @@
+name: Testing
+
+on: [push, pull_request]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Go
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      # Step 3: Create .env file
+      - name: Create .env file
+        run: |
+          echo "# Application Settings" >> .env
+          echo "REGISTRATION_ENABLED=true" >> .env
+          echo "APPLICATION_STATUS=testing" >> .env
+          echo "" >> .env
+          echo "# Authentication Keys" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "" >> .env
+          echo "# Frontend Server Variables" >> .env
+          echo "FRONTEND_URL=http://localhost:3000" >> .env
+          echo "BACKEND_URL=http://localhost:8001" >> .env
+        shell: bash
+
+      # Optional: Debug .env file
+      - name: Debug .env file
+        run: cat .env
+
+      # Step 4: Run tests
+      - name: Run tests
+        run: go test ./...
